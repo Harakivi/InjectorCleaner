@@ -339,7 +339,8 @@
                 </option>
                 <option>
                     <name>CCIncludePath2</name>
-                    <state></state>
+                    <state>$WS_DIR$\Sources\Board\STM32F100C4T6</state>
+                    <state>$WS_DIR$\Sources\Board\</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -355,7 +356,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -364,7 +365,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>CCPosIndRopi</name>
@@ -655,7 +656,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>80</hasPrio>
+                <hasPrio>1</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -2109,10 +2110,28 @@
             </data>
         </settings>
     </configuration>
+    <group>
+        <name>CMSIS</name>
+        <file>
+            <name>$PROJ_DIR$\..\Sources\Board\STM32F100C4T6\cmsis_compiler.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Sources\Board\STM32F100C4T6\cmsis_iccarm.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Sources\Board\STM32F100C4T6\cmsis_version.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Sources\Board\STM32F100C4T6\core_cm3.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Sources\Board\STM32F100C4T6\startup.cpp</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Sources\Board\STM32F100C4T6\stm32f100xb.h</name>
+        </file>
+    </group>
     <file>
-        <name>$PROJ_DIR$\..\Sources\main.cpp</name>
-    </file>
-    <file>
-        <name>$PROJ_DIR$\..\Sources\Board\STM32F100C4T6\startup.cpp</name>
+        <name>$PROJ_DIR$\main.cpp</name>
     </file>
 </project>
