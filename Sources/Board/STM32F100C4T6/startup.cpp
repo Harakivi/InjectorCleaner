@@ -3,7 +3,7 @@
 
 extern "C" void __program_start(void);
 
-#include "ItClases.h"
+#include "NVIC_Classes.h"
 
 typedef void (*intfunc)(void);
 typedef union

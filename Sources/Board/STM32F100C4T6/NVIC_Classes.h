@@ -1,5 +1,7 @@
-#ifndef _ITCLASES_H
-#define _ITCLASES_H
+#ifndef _NVIC_CASSES_H
+#define _NVIC_CASSES_H
+
+#include <stdint.h>
 
 class NMI
 {
@@ -53,6 +55,7 @@ class SystemTick
 {
 public:
     static void Handler();
+    static std::function<> func;
 };
 
 /////////////////////////////
@@ -304,6 +307,5 @@ public:
     static void Handler();
 };
 
-
 //------------------------------------------------
-#endif /* _ITCLASES_H */
+#endif /* _NVIC_CASSES_H */
