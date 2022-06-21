@@ -5,30 +5,20 @@
 
 namespace Time
 {
-  class SystemTimeClass:SystemTick
+    class SystemTimeClass : SystemTick
     {
     public:
-        void Init(unsigned long coreFreq);
-        unsigned long GetTime_ms();
+        static void Init(unsigned long coreFreq, Utils::CallbackWrapper<> &callBack);
+        static unsigned long GetTime_ms();
         static void Handler();
 
     private:
-        unsigned long timeFromStartms;
+        static unsigned long timeFromStartms;
     };
 
     void SystemTimeClass::Handler()
     {
-        this.timeFromStartms++;
-    }
-
-    void SystemTimeClass::Init(unsigned long coreFreq)
-    {
-      //void (SystemTick::*_callBack)() = reinterpret_cast<void (SystemTick::*)()>(&Handler);
-        SysTick->LOAD = coreFreq / 1000;
-        SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk;
-        SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
-        SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
-        NVIC_EnableIRQ(SysTick_IRQn);
+        timeFromStartms++;
     }
 
     unsigned long SystemTimeClass::GetTime_ms()
@@ -36,15 +26,18 @@ namespace Time
         return timeFromStartms;
     }
 
-    SystemTimeClass GlobalTime;
+    unsigned long SystemTimeClass::timeFromStartms = 0;
+} // namespace Time
 
-}
+#ifdef __STM32F100xB_H
+#include "STM32F100C4T6\Time_f100xb.h"
+#endif
 
-std::function SystemTick::func;
+SystemTick::TimeCallBackType SystemTick::TimeCallBack;
 
 void SystemTick::Handler()
 {
-    Time::GlobalTime.Handler();
+    TimeCallBack();
 }
 
 #endif //_TIME_H_

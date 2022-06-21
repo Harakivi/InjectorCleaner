@@ -397,11 +397,9 @@ __weak void TIM7_IRQ::Handler()
 }
 
 extern "C" void __cmain(void);
-extern "C" __weak void SystemInit();
 
 #pragma required = __vector_table
 void __program_start(void)
 {
-    SystemInit();
     __cmain();
 }
