@@ -1,8 +1,6 @@
 #ifndef _NVIC_CASSES_H
 #define _NVIC_CASSES_H
 
-#include "../../Utils/CallbackWrapper.h"
-
 class NMI
 {
 public:
@@ -54,9 +52,7 @@ public:
 class SystemTick
 {
 public:
-    typedef Utils::CallbackWrapper<> TimeCallBackType;
     static void Handler();
-    static TimeCallBackType TimeCallBack;
 };
 
 /////////////////////////////

@@ -3,30 +3,83 @@
 
 namespace Apps
 {
-    template <typename LED>
-    class Blink
+    template <typename LED, unsigned int _period_ms>
+    class Blink : Utils::ThreadBase
     {
+        typedef Utils::ThreadBase Base;
+
     public:
-        Blink(unsigned int period_ms)
+        enum States
         {
-            _period_ms = period_ms;
+            StateUnknown = 0,
+            StateInit = 1,
+            StateIdle = 2,
+            StateToggle,
+        };
+
+        void Init(unsigned int threadTickFrequency)
+        {
+            Base::Init(threadTickFrequency);
+            LED::InitOutputPushPull();
+            LED::Write(true);
+            _currentState = StateInit;
+            _nextState = StateIdle;
         }
-        void Run(unsigned long currentTime)
+        void BlinkEnable(bool Enable)
         {
-            static unsigned long lastTickTime = 0;
-            if((currentTime - lastTickTime)>= _period_ms)
+            if (Enable)
             {
-                OnTick();
-                lastTickTime = currentTime;
+                _currentState = StateToggle;
+            }
+            else
+            {
+                _currentState = StateIdle;
             }
         }
 
-    private:
-        unsigned short _period_ms = 0;
-        void OnTick()
+        States GetState()
+        {
+            return _currentState;
+        }
+
+        void OnTick() override
+        {
+            Base::OnTick();
+            if (_sleep)
+            {
+                return;
+            }
+            switch (_currentState)
+            {
+            case StateUnknown:
+            {
+            }
+            break;
+            case StateInit:
+            {
+                _currentState = _nextState;
+            }
+            case StateToggle:
+            {
+                LedToggle();
+            }
+            break;
+            case StateIdle:
+            {
+            }
+            break;
+            }
+        }
+
+    protected:
+        void LedToggle()
         {
             LED::Toggle();
+            Sleep(_period_ms);
         }
+
+        States _currentState = StateUnknown;
+        States _nextState = StateUnknown;
     };
 }
 

@@ -1,17 +1,17 @@
 #ifndef _GPIO_H_
 #define _GPIO_H_
 
-enum GPIO_Ports
-{
-    A = GPIOA_BASE,
-    B = GPIOB_BASE,
-    C = GPIOC_BASE,
-    D = GPIOD_BASE,
-    E = GPIOE_BASE,
-};
-
 namespace Hardware
 {
+
+    enum GPIO_Ports
+    {
+        A = GPIOA_BASE,
+        B = GPIOB_BASE,
+        C = GPIOC_BASE,
+        D = GPIOD_BASE,
+        E = GPIOE_BASE,
+    };
     template <
         GPIO_Ports Port,
         unsigned char PIN>

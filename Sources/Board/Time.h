@@ -1,19 +1,27 @@
 #ifndef _TIME_H_
 #define _TIME_H_
 
-#include "STM32F100C4T6\NVIC_Classes.h"
-
 namespace Time
 {
-    class SystemTimeClass : SystemTick
+    class SystemTimeClass
     {
     public:
-        static void Init(unsigned long coreFreq, Utils::CallbackWrapper<> &callBack);
-        static unsigned long GetTime_ms();
-        static void Handler();
+        void Init(unsigned long coreFreq);
+        unsigned long GetTime_ms();
+        void Handler();
+        static void Handler(void *_callbackParam)
+        {
+            SystemTimeClass *me = (SystemTimeClass *)_callbackParam;
+            if (!me)
+            {
+                return;
+            }
 
-    private:
-        static unsigned long timeFromStartms;
+            me->Handler();
+        }
+
+    protected:
+        unsigned long timeFromStartms;
     };
 
     void SystemTimeClass::Handler()
@@ -25,19 +33,11 @@ namespace Time
     {
         return timeFromStartms;
     }
-
-    unsigned long SystemTimeClass::timeFromStartms = 0;
 } // namespace Time
+
 
 #ifdef __STM32F100xB_H
 #include "STM32F100C4T6\Time_f100xb.h"
 #endif
-
-SystemTick::TimeCallBackType SystemTick::TimeCallBack;
-
-void SystemTick::Handler()
-{
-    TimeCallBack();
-}
 
 #endif //_TIME_H_

@@ -3,9 +3,9 @@
 
 namespace Time
 {
-    void SystemTimeClass::Init(unsigned long coreFreq, Utils::CallbackWrapper<> &callBack)
+    void SystemTimeClass::Init(unsigned long coreFreq)
     {
-        callBack = Handler;
+        SystemTick::CallBack.Set(Handler, this);
         SysTick->LOAD = coreFreq / 1000;
         SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk;
         SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;

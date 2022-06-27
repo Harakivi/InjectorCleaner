@@ -3,13 +3,19 @@
 
 namespace Hardware
 {
-    template <unsigned int HSI,
-              unsigned int HSE>
+    template <unsigned int HSE = 0,
+              unsigned int HSI = 8000000>
     class Clock
     {
     public:
-        static bool Init(unsigned long coreFreq);
-        static unsigned long GetCurrentCoreFrequency();
+        static unsigned long GetSysCLKFrequency();
+        static bool SetSysCLKFrequency(unsigned long SysCLKFreq);
+        static unsigned long GetAHBFrequency();
+        static bool SetAHBFrequency(unsigned long AHBFreq);
+        static unsigned long GetAPB1Frequency();
+        static bool SetAPB1Frequency(unsigned long AHBFreq);
+        static unsigned long GetAPB2Frequency();
+        static bool SetAPB2Frequency(unsigned long AHBFreq);
     };
 
 } // namespace Hardware
