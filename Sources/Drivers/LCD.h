@@ -24,20 +24,28 @@ namespace Hardware
                 StateIdle = 2,
                 StateSendCommand,
                 StateSendData,
+                StateSendBuffer,
             };
             typedef ThreadBase Base;
             void Init(unsigned int threadTickFrequency);
             void OnTick();
-            void SendCommand(unsigned char command);
-            void String(char const *Data);
-            void Clear();
+            // void String(char const *Data);
+            // static void String(void *_callbackParam, char const *Data);
+            void SendBuffer();
+            static void SendBuffer(void *_callbackParam);
+            void BufferString(char const *Data, unsigned char X, unsigned char Y);
+            static void BufferString(void *_callbackParam, char const *Data, unsigned char X, unsigned char Y);
+            void ClearBuffer();
+            static void ClearBuffer(void *_callbackParam);
+            // void Char(char const Data);
+            // static void Char(void *_callbackParam, char const Data);
             void DisplayEnable(bool dispEnable, bool cursorEnable, bool cursorBlink);
-            void SetPos(unsigned char X, unsigned char Y);
             States GetState();
+            static void GetState(void *_callbackParam, Base::States &state);
+            void Run();
 
         protected:
             bool _initied = false;
-            bool _waitEnableClear = false;
             unsigned char _commandToSend;
             unsigned char _dataToSend[CollumnCnt * LinesCnt];
             unsigned char _countDataToSend;
@@ -48,6 +56,10 @@ namespace Hardware
             void WriteCommand();
             void WriteData();
             void SetData(unsigned char Data);
+            void ClearDisp();
+            void SendCommand(unsigned char command);
+            void SetPos(unsigned char X, unsigned char Y);
+            bool _waitEnableClear = false;
         };
         template <class D4Pin,
                   class D5Pin,
@@ -177,7 +189,7 @@ namespace Hardware
             break;
             case 10:
             {
-                Clear();
+                ClearDisp();
                 inFuncPos++;
                 return;
             }
@@ -207,6 +219,19 @@ namespace Hardware
         void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::OnTick()
         {
             Base::OnTick();
+        }
+
+        template <class D4Pin,
+                  class D5Pin,
+                  class D6Pin,
+                  class D7Pin,
+                  class EnablePin,
+                  class RegSelectPin,
+                  unsigned int CollumnCnt,
+                  unsigned int LinesCnt>
+        void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::Run()
+        {
+            Base::Run();
             if (_sleep)
             {
                 return;
@@ -215,6 +240,8 @@ namespace Hardware
             {
                 EnablePin::Write(false);
                 _waitEnableClear = false;
+                Sleep(1);
+                return;
             }
             switch (_currentState)
             {
@@ -233,6 +260,11 @@ namespace Hardware
             }
             break;
             case StateSendData:
+            {
+                WriteData();
+            }
+            break;
+            case StateSendBuffer:
             {
                 WriteData();
             }
@@ -322,19 +354,222 @@ namespace Hardware
                   class RegSelectPin,
                   unsigned int CollumnCnt,
                   unsigned int LinesCnt>
-        void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::String(char const *Data)
+        void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::BufferString(void *_callbackParam, char const *Data, unsigned char X, unsigned char Y)
+        {
+            LCD *me = (LCD *)_callbackParam;
+            if (!me)
+            {
+                return;
+            }
+
+            me->BufferString(Data, X, Y);
+        }
+
+        template <class D4Pin,
+                  class D5Pin,
+                  class D6Pin,
+                  class D7Pin,
+                  class EnablePin,
+                  class RegSelectPin,
+                  unsigned int CollumnCnt,
+                  unsigned int LinesCnt>
+        void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::BufferString(char const *Data, unsigned char X, unsigned char Y)
         {
             if (Data)
             {
-                _nextState = _currentState;
-                _currentState = StateSendData;
-                for (int i = _countDataToSend; Data[i] && i < (CollumnCnt * LinesCnt); i++)
+                unsigned char startPos = 0;
+                if (X > CollumnCnt || Y > LinesCnt)
                 {
-                    _dataToSend[i] = Data[i];
-                    _countDataToSend++;
+                    return;
+                }
+                switch (Y)
+                {
+                case 0:
+                    break;
+                case 1:
+                    startPos = CollumnCnt * 2;
+                    break;
+                case 2:
+                    startPos = CollumnCnt * 1;
+                    break;
+                case 3:
+                    startPos = CollumnCnt * 3;
+                    break;
+                };
+                unsigned char currentPos = startPos;
+                for (int i = startPos; Data[i] && currentPos < (CollumnCnt * LinesCnt); i++)
+                {
+                    _dataToSend[currentPos++] = Data[i];
+                    if (!(currentPos % 20))
+                    {
+                        switch (currentPos / 20)
+                        {
+                        case 1:
+                            currentPos = CollumnCnt * 2;
+                            break;
+                        case 2:
+                            currentPos = CollumnCnt * 3;
+                            break;
+                        case 3:
+                            currentPos = CollumnCnt * 1;
+                            break;
+                        }
+                    }
                 }
             }
         }
+
+        template <class D4Pin,
+                  class D5Pin,
+                  class D6Pin,
+                  class D7Pin,
+                  class EnablePin,
+                  class RegSelectPin,
+                  unsigned int CollumnCnt,
+                  unsigned int LinesCnt>
+        void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::ClearBuffer()
+        {
+            _countDataToSend = 0;
+            _pointerToDataSend = 0;
+            for (int i = 0; i < (CollumnCnt * LinesCnt); i++)
+            {
+                _dataToSend[i] = 0;
+            }
+            ClearDisp();
+        }
+
+        template <class D4Pin,
+                  class D5Pin,
+                  class D6Pin,
+                  class D7Pin,
+                  class EnablePin,
+                  class RegSelectPin,
+                  unsigned int CollumnCnt,
+                  unsigned int LinesCnt>
+        void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::ClearBuffer(void *_callbackParam)
+        {
+            LCD *me = (LCD *)_callbackParam;
+            if (!me)
+            {
+                return;
+            }
+
+            me->ClearBuffer();
+        }
+
+        template <class D4Pin,
+                  class D5Pin,
+                  class D6Pin,
+                  class D7Pin,
+                  class EnablePin,
+                  class RegSelectPin,
+                  unsigned int CollumnCnt,
+                  unsigned int LinesCnt>
+        void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::SendBuffer()
+        {
+            SetPos(0, 0);
+            _countDataToSend = CollumnCnt * LinesCnt;
+            _pointerToDataSend = 0;
+            _nextState = StateSendBuffer;
+        }
+
+        template <class D4Pin,
+                  class D5Pin,
+                  class D6Pin,
+                  class D7Pin,
+                  class EnablePin,
+                  class RegSelectPin,
+                  unsigned int CollumnCnt,
+                  unsigned int LinesCnt>
+        void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::SendBuffer(void *_callbackParam)
+        {
+            LCD *me = (LCD *)_callbackParam;
+            if (!me)
+            {
+                return;
+            }
+
+            me->SendBuffer();
+        }
+
+        // template <class D4Pin,
+        //           class D5Pin,
+        //           class D6Pin,
+        //           class D7Pin,
+        //           class EnablePin,
+        //           class RegSelectPin,
+        //           unsigned int CollumnCnt,
+        //           unsigned int LinesCnt>
+        // void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::String(char const *Data)
+        // {
+        //     if (Data)
+        //     {
+        //         _nextState = _currentState;
+        //         _currentState = StateSendData;
+        //         for (int i = _countDataToSend + _pointerToDataSend; Data[i] && i < (CollumnCnt * LinesCnt); i++)
+        //         {
+        //             _dataToSend[i] = Data[i];
+        //             _countDataToSend++;
+        //         }
+        //     }
+        // }
+
+        // template <class D4Pin,
+        //           class D5Pin,
+        //           class D6Pin,
+        //           class D7Pin,
+        //           class EnablePin,
+        //           class RegSelectPin,
+        //           unsigned int CollumnCnt,
+        //           unsigned int LinesCnt>
+        // void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::String(void *_callbackParam, char const *Data)
+        // {
+        //     LCD *me = (LCD *)_callbackParam;
+        //     if (!me)
+        //     {
+        //         return;
+        //     }
+
+        //     me->String(Data);
+        // }
+
+        // template <class D4Pin,
+        //           class D5Pin,
+        //           class D6Pin,
+        //           class D7Pin,
+        //           class EnablePin,
+        //           class RegSelectPin,
+        //           unsigned int CollumnCnt,
+        //           unsigned int LinesCnt>
+        // void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::Char(char const Data)
+        // {
+        //     if (Data)
+        //     {
+        //         _nextState = _currentState;
+        //         _currentState = StateSendData;
+        //         _dataToSend[_countDataToSend + _pointerToDataSend] = Data;
+        //         _countDataToSend++;
+        //     }
+        // }
+
+        // template <class D4Pin,
+        //           class D5Pin,
+        //           class D6Pin,
+        //           class D7Pin,
+        //           class EnablePin,
+        //           class RegSelectPin,
+        //           unsigned int CollumnCnt,
+        //           unsigned int LinesCnt>
+        // void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::Char(void *_callbackParam, char const Data)
+        // {
+        //     LCD *me = (LCD *)_callbackParam;
+        //     if (!me)
+        //     {
+        //         return;
+        //     }
+
+        //     me->Char(Data);
+        // }
 
         template <class D4Pin,
                   class D5Pin,
@@ -349,13 +584,19 @@ namespace Hardware
             static unsigned char inFuncPos = 0;
             if (_countDataToSend)
             {
-
                 RegSelectPin::Write(true);
                 switch (inFuncPos)
                 {
                 case 0:
                 {
-                    SetData(_dataToSend[_pointerToDataSend] >> 4);
+                    if (_dataToSend[_pointerToDataSend])
+                    {
+                        SetData(_dataToSend[_pointerToDataSend] >> 4);
+                    }
+                    else
+                    {
+                        SetData(0x20 >> 4);
+                    }
                     EnablePin::Write(true);
                     _waitEnableClear = true;
                     inFuncPos++;
@@ -365,7 +606,14 @@ namespace Hardware
                 break;
                 case 1:
                 {
-                    SetData(_dataToSend[_pointerToDataSend]);
+                    if (_dataToSend[_pointerToDataSend])
+                    {
+                        SetData(_dataToSend[_pointerToDataSend]);
+                    }
+                    else
+                    {
+                        SetData(0x20);
+                    }
                     EnablePin::Write(true);
                     _waitEnableClear = true;
                     _countDataToSend--;
@@ -403,7 +651,7 @@ namespace Hardware
                   class RegSelectPin,
                   unsigned int CollumnCnt,
                   unsigned int LinesCnt>
-        void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::Clear()
+        void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::ClearDisp()
         {
             SendCommand(0x01);
         }
@@ -467,6 +715,25 @@ namespace Hardware
         LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::GetState()
         {
             return _currentState;
+        }
+
+        template <class D4Pin,
+                  class D5Pin,
+                  class D6Pin,
+                  class D7Pin,
+                  class EnablePin,
+                  class RegSelectPin,
+                  unsigned int CollumnCnt,
+                  unsigned int LinesCnt>
+        void LCD<D4Pin, D5Pin, D6Pin, D7Pin, EnablePin, RegSelectPin, CollumnCnt, LinesCnt>::GetState(void *_callbackParam, Base::States &state)
+        {
+            LCD *me = (LCD *)_callbackParam;
+            if (!me)
+            {
+                return;
+            }
+
+            state = (Base::States)me->GetState();
         }
 
         template <class D4Pin,

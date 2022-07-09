@@ -2,6 +2,7 @@
 #define _DRIVERS_H_
 
 #include "..\Sources\Drivers\LCD.h"
+#include "..\Sources\Apps\Gui.h"
 #include "..\Sources\Apps\Blink.h"
 
 namespace Hardware
@@ -21,14 +22,21 @@ namespace Hardware
             typedef Apps::Blink<typename Board::LED, 1000> BlinkerType;
             static BlinkerType Blinker;
 
+            typedef Apps::Gui::TestGui TestType;
+            static TestType TestInstance;
+
             static void ThreadsHandler()
             {
                 Display.OnTick();
                 Blinker.OnTick();
+                TestInstance.OnTick();
             }
 
             static void Run()
             {
+                Display.Run();
+                Blinker.Run();
+                TestInstance.Run();
             }
 
             static void Init()
@@ -37,19 +45,21 @@ namespace Hardware
                 GlobalTime.Init(Board::CoreClock::GetSysCLKFrequency());
 
                 Display.Init(Board::ThreadsTimer::GetFrequency());
-                while (Display.GetState() != Display.StateIdle)
-                {
-                }
+                Display.Init(Board::ThreadsTimer::GetFrequency());
 
                 Blinker.Init(Board::ThreadsTimer::GetFrequency());
 
-                while (Blinker.GetState() != Blinker.StateIdle)
-                {
-                }
+                TestInstance.Init(Board::ThreadsTimer::GetFrequency());
+
+                TestInstance.GetDisplayStateCallBack.Set(LCD2004Type::GetState, &Display);
+                TestInstance.WriteToBufferCallBack.Set(LCD2004Type::BufferString, &Display);
+                TestInstance.SendBufferCallBack.Set(LCD2004Type::SendBuffer, &Display);
+                TestInstance.ClearBufferCallBack.Set(LCD2004Type::ClearBuffer, &Display);
 
                 Blinker.BlinkEnable(true);
+                TestInstance.Enable(true);
 
-                Display.String("InitComplete");
+                Board::ThreadsTimer::Start();
             }
         };
         template <class Board>
@@ -60,6 +70,9 @@ namespace Hardware
 
         template <class Board>
         Drivers<Board>::BlinkerType Drivers<Board>::Blinker;
+
+        template <class Board>
+        Drivers<Board>::TestType Drivers<Board>::TestInstance;
 
     } // namespace Drivers
 } // namespace Hardware

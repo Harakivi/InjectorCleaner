@@ -74,7 +74,7 @@
                 </option>
                 <option>
                     <name>OGChipSelectEditMenu</name>
-                    <state>STM32F100C4	ST STM32F100C4</state>
+                    <state>STM32F100C8	ST STM32F100C8</state>
                 </option>
                 <option>
                     <name>GenLowLevelInterface</name>
@@ -120,7 +120,7 @@
                 </option>
                 <option>
                     <name>GFPUDeviceSlave</name>
-                    <state>STM32F100C4	ST STM32F100C4</state>
+                    <state>STM32F100C8	ST STM32F100C8</state>
                 </option>
                 <option>
                     <name>FPU2</name>

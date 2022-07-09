@@ -5,6 +5,7 @@
 
 typedef Hardware::InjectorCleaner::Board Board;
 typedef Hardware::InjectorCleaner::Drivers<Board> Drivers;
+typedef Board::WDG_Timer WDG_Timer;
 
 int main()
 {
@@ -14,5 +15,6 @@ int main()
   while (1)
   {
     Drivers::Run();
+    WDG_Timer::ResetCounter();
   }
 }

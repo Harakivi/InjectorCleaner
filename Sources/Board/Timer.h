@@ -18,11 +18,19 @@ namespace Hardware
     class Timer
     {
     public:
+        struct PWMCnanStruct
+        {
+            float dutyCycle;
+            bool invert;
+        };
         static void InitCounter(double Freq, bool interruptEn);
+        static void InitPWM(double Freq, bool interruptEn, PWMCnanStruct chan1DutyCycle = {0}, PWMCnanStruct chan2DutyCycle = {0}, PWMCnanStruct chan3DutyCycle = {0}, PWMCnanStruct chan4DutyCycle = {0});
         static void Start();
         static void Stop();
         static unsigned short GetCounterValue();
         static void SetReloadValue(unsigned short Value);
+        static void SetDutyCycle_ms(float dutyCycle, unsigned char channel);
+        static float GetDutyCycle_ms(unsigned char channel);
         static void SetPrescalerrValue(unsigned short Value);
         static unsigned short GetReloadValue();
         static unsigned short GetPrescalerrValue();
@@ -38,6 +46,7 @@ namespace Hardware
         }
 
     protected:
+        static void PwmGPIOInit(unsigned char timChannel);
     };
 } // namespace Hardware
 

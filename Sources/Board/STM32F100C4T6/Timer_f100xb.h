@@ -86,6 +86,270 @@ namespace Hardware
             }
         }
     }
+
+    template <Timers TIM, class CoreClock>
+    void Timer<TIM, CoreClock>::InitPWM(double Freq, bool interruptEn, PWMCnanStruct chan1, PWMCnanStruct chan2, PWMCnanStruct chan3, PWMCnanStruct chan4)
+    {
+        InitCounter(Freq, interruptEn);
+        if (chan1.dutyCycle > 0.0)
+        {
+            ((TIM_TypeDef *)TIM)->CCER |= TIM_CCER_CC1E_Msk;
+            ((TIM_TypeDef *)TIM)->CCMR1 |= 0b110 << TIM_CCMR1_OC1M_Pos;
+            PwmGPIOInit(1);
+            ((TIM_TypeDef *)TIM)->BDTR |= TIM_BDTR_MOE_Msk;
+            if (chan1.invert)
+            {
+                ((TIM_TypeDef *)TIM)->CCER |= TIM_CCER_CC1P_Msk;
+            }
+            SetDutyCycle_ms(chan1.dutyCycle, 1);
+        }
+        if (chan2.dutyCycle > 0.0)
+        {
+            ((TIM_TypeDef *)TIM)->CCER |= TIM_CCER_CC2E_Msk;
+            ((TIM_TypeDef *)TIM)->CCMR1 |= 0b110 << TIM_CCMR1_OC2M_Pos;
+            PwmGPIOInit(2);
+            ((TIM_TypeDef *)TIM)->BDTR |= TIM_BDTR_MOE_Msk;
+            if (chan2.invert)
+            {
+                ((TIM_TypeDef *)TIM)->CCER |= TIM_CCER_CC2P_Msk;
+            }
+            SetDutyCycle_ms(chan2.dutyCycle, 2);
+        }
+        if (chan3.dutyCycle > 0.0)
+        {
+            ((TIM_TypeDef *)TIM)->CCER |= TIM_CCER_CC3E_Msk;
+            ((TIM_TypeDef *)TIM)->CCMR2 |= 0b110 << TIM_CCMR2_OC3M_Pos;
+            PwmGPIOInit(3);
+            ((TIM_TypeDef *)TIM)->BDTR |= TIM_BDTR_MOE_Msk;
+            if (chan3.invert)
+            {
+                ((TIM_TypeDef *)TIM)->CCER |= TIM_CCER_CC3P_Msk;
+            }
+            SetDutyCycle_ms(chan3.dutyCycle, 3);
+        }
+        if (chan4.dutyCycle > 0.0)
+        {
+            ((TIM_TypeDef *)TIM)->CCER |= TIM_CCER_CC4E_Msk;
+            ((TIM_TypeDef *)TIM)->CCMR2 |= 0b110 << TIM_CCMR2_OC4M_Pos;
+            PwmGPIOInit(4);
+            ((TIM_TypeDef *)TIM)->BDTR |= TIM_BDTR_MOE_Msk;
+            if (chan4.invert)
+            {
+                ((TIM_TypeDef *)TIM)->CCER |= TIM_CCER_CC4P_Msk;
+            }
+            SetDutyCycle_ms(chan4.dutyCycle, 4);
+        }
+    }
+
+    template <Timers TIM, class CoreClock>
+    void Timer<TIM, CoreClock>::SetDutyCycle_ms(float dutyCycle, unsigned char channel)
+    {
+        float floatValue = ((TIM_TypeDef *)TIM)->ARR;
+        unsigned int Value = 0;
+        float ratio = (dutyCycle / ((1.0 / GetFrequency()) * 1000));
+        floatValue *= ratio;
+        Value = (unsigned int)floatValue;
+        if ((floatValue - Value) > 0)
+        {
+            Value += 1;
+        }
+        if (Value > ((TIM_TypeDef *)TIM)->ARR)
+        {
+            return;
+        }
+        switch (channel)
+        {
+        case 1:
+        {
+            if (((TIM_TypeDef *)TIM)->CCER & TIM_CCER_CC1P_Msk)
+            {
+                ((TIM_TypeDef *)TIM)->CCR1 = ((TIM_TypeDef *)TIM)->ARR - Value;
+            }
+            else
+            {
+                ((TIM_TypeDef *)TIM)->CCR1 = Value;
+            }
+        }
+        break;
+        case 2:
+        {
+            if (((TIM_TypeDef *)TIM)->CCER & TIM_CCER_CC2P_Msk)
+            {
+                ((TIM_TypeDef *)TIM)->CCR2 = ((TIM_TypeDef *)TIM)->ARR - Value;
+            }
+            else
+            {
+                ((TIM_TypeDef *)TIM)->CCR2 = Value;
+            }
+        }
+        break;
+        case 3:
+        {
+            if (((TIM_TypeDef *)TIM)->CCER & TIM_CCER_CC3P_Msk)
+            {
+                ((TIM_TypeDef *)TIM)->CCR3 = ((TIM_TypeDef *)TIM)->ARR - Value;
+            }
+            else
+            {
+                ((TIM_TypeDef *)TIM)->CCR3 = Value;
+            }
+        }
+        break;
+        case 4:
+        {
+            if (((TIM_TypeDef *)TIM)->CCER & TIM_CCER_CC4P_Msk)
+            {
+                ((TIM_TypeDef *)TIM)->CCR4 = ((TIM_TypeDef *)TIM)->ARR - Value;
+            }
+            else
+            {
+                ((TIM_TypeDef *)TIM)->CCR4 = Value;
+            }
+        }
+        break;
+        }
+    }
+    template <Timers TIM, class CoreClock>
+    float Timer<TIM, CoreClock>::GetDutyCycle_ms(unsigned char channel)
+    {
+        float ratio = 0;
+        bool chanPolarity = false;
+        switch (channel)
+        {
+        case 1:
+        {
+            ratio = ((TIM_TypeDef *)TIM)->CCR1;
+            ratio /= ((TIM_TypeDef *)TIM)->ARR;
+            chanPolarity = (bool)(((TIM_TypeDef *)TIM)->CCER & TIM_CCER_CC1P_Msk);
+        }
+        break;
+        case 2:
+        {
+            ratio = ((TIM_TypeDef *)TIM)->CCR2;
+            ratio /= ((TIM_TypeDef *)TIM)->ARR;
+            chanPolarity = (bool)(((TIM_TypeDef *)TIM)->CCER & TIM_CCER_CC2P_Msk);
+        }
+        break;
+        case 3:
+        {
+            ratio = ((TIM_TypeDef *)TIM)->CCR3;
+            ratio /= ((TIM_TypeDef *)TIM)->ARR;
+            chanPolarity = (bool)(((TIM_TypeDef *)TIM)->CCER & TIM_CCER_CC3P_Msk);
+        }
+        break;
+        case 4:
+        {
+            ratio = ((TIM_TypeDef *)TIM)->CCR4;
+            ratio /= ((TIM_TypeDef *)TIM)->ARR;
+            chanPolarity = (bool)(((TIM_TypeDef *)TIM)->CCER & TIM_CCER_CC4P_Msk);
+        }
+        break;
+
+        default:
+            return 0;
+            break;
+        }
+        if (chanPolarity)
+        {
+            return (1.0 / GetFrequency() * (1 - ratio)) * 1000;
+        }
+        return (1.0 / GetFrequency() * ratio) * 1000;
+    }
+
+    template <Timers TIM, class CoreClock>
+    void Timer<TIM, CoreClock>::PwmGPIOInit(unsigned char timChannel)
+    {
+        if constexpr (TIM == TIM1_BASE)
+        {
+            RCC->APB2ENR &= ~RCC_APB2ENR_IOPAEN;
+            RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
+        }
+        if constexpr (TIM == TIM2_BASE)
+        {
+            RCC->APB2ENR &= ~RCC_APB2ENR_IOPAEN;
+            RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
+        }
+        if constexpr (TIM == TIM3_BASE)
+        {
+            RCC->APB2ENR &= ~RCC_APB2ENR_IOPAEN;
+            RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
+            RCC->APB2ENR &= ~RCC_APB2ENR_IOPBEN;
+            RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
+        }
+        if constexpr (TIM == TIM4_BASE)
+        {
+            RCC->APB2ENR &= ~RCC_APB2ENR_IOPBEN;
+            RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
+        }
+        if (TIM == TIM1_BASE && timChannel == 1)
+        {
+            Hardware::GPIO<Hardware::A, 8>::InitOutputPushPullAlternate();
+        }
+        else if (TIM == TIM1_BASE && timChannel == 2)
+        {
+            Hardware::GPIO<Hardware::A, 9>::InitOutputPushPullAlternate();
+        }
+        else if (TIM == TIM1_BASE && timChannel == 3)
+        {
+            Hardware::GPIO<Hardware::A, 10>::InitOutputPushPullAlternate();
+        }
+        else if (TIM == TIM1_BASE && timChannel == 4)
+        {
+            Hardware::GPIO<Hardware::A, 11>::InitOutputPushPullAlternate();
+        }
+
+        else if (TIM == TIM2_BASE && timChannel == 1)
+        {
+            // Hardware::GPIO<Hardware::A, 8>::InitOutputPushPullAlternate();
+        }
+        else if (TIM == TIM2_BASE && timChannel == 2)
+        {
+            Hardware::GPIO<Hardware::A, 1>::InitOutputPushPullAlternate();
+        }
+        else if (TIM == TIM2_BASE && timChannel == 3)
+        {
+            Hardware::GPIO<Hardware::A, 2>::InitOutputPushPullAlternate();
+        }
+        else if (TIM == TIM2_BASE && timChannel == 4)
+        {
+            Hardware::GPIO<Hardware::A, 3>::InitOutputPushPullAlternate();
+        }
+
+        else if (TIM == TIM3_BASE && timChannel == 1)
+        {
+            Hardware::GPIO<Hardware::A, 6>::InitOutputPushPullAlternate();
+        }
+        else if (TIM == TIM3_BASE && timChannel == 2)
+        {
+            Hardware::GPIO<Hardware::A, 7>::InitOutputPushPullAlternate();
+        }
+        else if (TIM == TIM3_BASE && timChannel == 3)
+        {
+            Hardware::GPIO<Hardware::B, 0>::InitOutputPushPullAlternate();
+        }
+        else if (TIM == TIM3_BASE && timChannel == 4)
+        {
+            Hardware::GPIO<Hardware::B, 1>::InitOutputPushPullAlternate();
+        }
+
+        else if (TIM == TIM4_BASE && timChannel == 1)
+        {
+            Hardware::GPIO<Hardware::B, 6>::InitOutputPushPullAlternate();
+        }
+        else if (TIM == TIM4_BASE && timChannel == 2)
+        {
+            Hardware::GPIO<Hardware::B, 7>::InitOutputPushPullAlternate();
+        }
+        else if (TIM == TIM4_BASE && timChannel == 3)
+        {
+            Hardware::GPIO<Hardware::B, 8>::InitOutputPushPullAlternate();
+        }
+        else if (TIM == TIM4_BASE && timChannel == 4)
+        {
+            Hardware::GPIO<Hardware::B, 9>::InitOutputPushPullAlternate();
+        }
+    }
+
     template <Timers TIM, class CoreClock>
     void Timer<TIM, CoreClock>::Start()
     {

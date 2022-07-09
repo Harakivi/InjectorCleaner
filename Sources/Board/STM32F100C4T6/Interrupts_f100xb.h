@@ -1,7 +1,6 @@
 #ifndef _INTERRUPTS_F100XB_H
 #define _INTERRUPTS_F100XB_H
 
-
 class SystemTick
 {
 public:
@@ -26,7 +25,6 @@ public:
 };
 
 TIM1_UP_TIM16_IRQ::CallBackType TIM1_UP_TIM16_IRQ::UpdateCallBack;
-
 
 void TIM1_UP_TIM16_IRQ::Handler()
 {

@@ -6,18 +6,19 @@ namespace Utils
 
     class ThreadBase
     {
-    protected:
+
+    public:
+        static const unsigned long SLEEPINFINITE = 0xFFFFFFFF;
         enum States
         {
             StateUnknown = 0,
             StateInit = 1,
             StateIdle = 2,
         };
-
-    public:
         virtual void Init(unsigned int threadTickFrequency);
         virtual void OnTick();
         virtual void Sleep(unsigned int milliSeconds);
+        virtual void Run();
 
     protected:
         unsigned int _threadTickFrequency = 0;
@@ -43,6 +44,10 @@ namespace Utils
         {
             return;
         }
+    }
+
+    void ThreadBase::Run()
+    {
         switch (_currentState)
         {
         case StateUnknown:

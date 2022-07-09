@@ -42,9 +42,14 @@ namespace Apps
             return _currentState;
         }
 
-        void OnTick() override
+        void OnTick() 
         {
             Base::OnTick();
+        }
+
+        void Run()
+        {
+            Base::Run();
             if (_sleep)
             {
                 return;
