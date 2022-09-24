@@ -27,7 +27,7 @@ namespace Apps
                 StateIdle = 2,
                 StateSendChar,
             };
-            void Init(unsigned int threadTickFrequency) override
+            void Init(unsigned int threadTickFrequency) 
             {
                 Base::Init(threadTickFrequency);
                 _currentState = StateInit;

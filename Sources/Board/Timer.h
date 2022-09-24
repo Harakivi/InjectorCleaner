@@ -38,11 +38,11 @@ namespace Hardware
         static void SetFrequency(unsigned int Freq);
         static void SetUpdateCallBack(void (*callBack)())
         {
-            TIM1_UP_TIM16_IRQ::UpdateCallBack.Set(callBack);
+            TIM1_UP_TIM16_IRQ::CallBack.Set(callBack);
         }
         void SetUpdateCallBack(void (*callBack)(void *), void *callBackParam)
         {
-            TIM1_UP_TIM16_IRQ::UpdateCallBack.Set(callBack, callBackParam);
+            TIM1_UP_TIM16_IRQ::CallBack.Set(callBack, callBackParam);
         }
 
     protected:
